@@ -4,6 +4,8 @@ import json
 from functools import wraps
 from collections import defaultdict
 
+import downloader
+
 
 app = Flask(__name__)
 
@@ -11,11 +13,12 @@ def parsejson(name):
     with open(name+'.json') as json_data:
         data = json.load(json_data)
         scraped_data_link = defaultdict(list)
-
         for i in range(len(data)):
+            print(len(data))
+            print(data['G'])
             tempid = 'id'+str(i)
             tempList = []
-
+            print(data[i+1])
             link = data[i]['display_url']
             tempList.append(link)
 
@@ -44,7 +47,7 @@ def parsejson(name):
 
 @app.route('/')
 def index():
-    return render_template('home.html') 
+    return render_template('home.html')
 
 def is_logged_in(f):
     @wraps(f)
@@ -78,22 +81,46 @@ def scrape():
 
     return render_template('scrape.html')
 
+# @app.route('/scrape_result')
+# @is_logged_in
+# def scrape_result():
+#     os.system('instagram-scraper --tag '+ str(session['brand']) +','+ str(session['product']) +' -u '+ str(session['username']) +' -p '+ str(session['password']) +' -m 3 --comment -t JPG')
+#
+#     try:
+#         scraped_data_link = parsejson(session['brand']+'/'+session['brand'])
+#     except:
+#         flash('No result for'+session['brand'], 'danger')
+#
+#     try:
+#         scraped_data_link1 = parsejson(session['product']+'/'+session['product'])
+#     except:
+#         flash('No result for'+session['product'], 'danger')
+#
+#     return render_template('scrape_result.html',scraped_data_link=scraped_data_link,scraped_data_link1=scraped_data_link1,brand=session['brand'],product=session['product'])
+
 @app.route('/scrape_result')
 @is_logged_in
 def scrape_result():
+    # downloader.igscrape(session)
     os.system('instagram-scraper --tag '+ str(session['brand']) +','+ str(session['product']) +' -u '+ str(session['username']) +' -p '+ str(session['password']) +' -m 3 --comment -t JPG')
 
-    try:
-        scraped_data_link = parsejson(session['brand']+'/'+session['brand'])
-    except:
-        flash('No result for'+session['brand'], 'danger')
+    scraped_data_link = parsejson(session['brand'] + '/' + session['brand'])
 
-    try:
-        scraped_data_link1 = parsejson(session['product']+'/'+session['product'])
-    except:
-        flash('No result for'+session['product'], 'danger')
+    # try:
+    #     scraped_data_link = parsejson(session['brand']+'/'+session['brand'])
+    # except:
+    #     flash('No result for '+session['brand'], 'danger')
+        # scraped_data_link = []
 
-    return render_template('scrape_result.html',scraped_data_link=scraped_data_link,scraped_data_link1=scraped_data_link1,brand=session['brand'],product=session['product'])
+    # try:
+    #     scraped_data_link1 = parsejson(session['product']+'/'+session['product'])
+    # except:
+    #     flash('No result for '+session['product'], 'danger')
+        # scraped_data_link1 = []
+    return render_template("scrape_result.html", scraped_data_link=scraped_data_link, brand=session['brand'], product=session['product'])
+
+    # return render_template('scrape_result.html',scraped_data_link=scraped_data_link,scraped_data_link1=scraped_data_link1,brand=session['brand'],product=session['product'])
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -102,6 +129,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
+        # TODO: Verify sign in is true before redirecting.
         session['logged_in'] = True
         session['username'] = username
         session['password'] = password
